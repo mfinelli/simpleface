@@ -2,6 +2,7 @@
 
 #define KEY_TEMPERATURE 0
 #define KEY_CONDITIONS 1
+#define FORECAST_API_KEY 2
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -79,13 +80,22 @@ static void inbox_received_callback(DictionaryIterator *iterator,
     static char temperature_buffer[8];
     static char conditions_buffer[32];
     static char weather_layer_buffer[32];
+    static int forecast_api_key;
 
     // Read tuples for data.
     Tuple *temp_tuple = dict_find(iterator, KEY_TEMPERATURE);
     Tuple *conditions_tuple = dict_find(iterator, KEY_CONDITIONS);
+    Tuple *forecast_api_key_tuple = dict_find(iterator, FORECAST_API_KEY);
+
+    if(forecast_api_key_tuple && !(int)forecast_api_key_tuple->value->int8) {
+        snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s",
+                "No API Key!");
+        text_layer_set_text(s_weather_layer, weather_layer_buffer);
+    }
+
 
     // Iff all data is available then use it.
-    if(temp_tuple && conditions_tuple) {
+    else if(temp_tuple && conditions_tuple) {
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F",
                 (int)temp_tuple->value->int32);
         snprintf(conditions_buffer, sizeof(conditions_buffer), "%s",

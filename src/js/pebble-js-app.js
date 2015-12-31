@@ -49,11 +49,28 @@ function locationError(err) {
 }
 
 function getWeather() {
-  navigator.geolocation.getCurrentPosition(
-      locationSuccess,
-      locationError,
-      { timeout: 15000, maximumAge: 60000 }
-  );
+  var apiKey = localStorage.getItem('forecastAPIKey');
+
+  if (apiKey.trim().length == 0) {
+    var dictionary = {
+      'FORECAST_API_KEY': false
+    };
+
+    Pebble.sendAppMessage(dictionary,
+        function(e) {
+          console.log('Sent empty API key to pebble.');
+        },
+        function(e) {
+          console.log('Error sending empty API key to pebble.');
+        }
+    );
+  } else {
+    navigator.geolocation.getCurrentPosition(
+        locationSuccess,
+        locationError,
+        { timeout: 15000, maximumAge: 60000 }
+    );
+  }
 }
 
 // Listen for when the watchface is opened.
