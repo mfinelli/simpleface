@@ -2,6 +2,10 @@ const API_KEY = ''
 
 var xhrRequest = function(url, type, callback) {
   var xhr = new XMLHttpRequest();
+  xhr.ontimeout = function() {
+    console.error('Request timed out!');
+    callback(false);
+  };
   xhr.onload = function() {
     if (this.readyState == 4) {
       if (this.status == 200) {
@@ -12,6 +16,7 @@ var xhrRequest = function(url, type, callback) {
     }
   };
   xhr.open(type, url);
+  xhr.timeout = 15000;
   xhr.send();
 };
 
