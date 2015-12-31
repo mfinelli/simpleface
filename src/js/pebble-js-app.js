@@ -3,43 +3,56 @@ const API_KEY = ''
 var xhrRequest = function(url, type, callback) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
-    callback(this.responseText);
+    if (this.readyState == 4) {
+      if (this.status == 200) {
+        callback(this.responseText);
+      } else {
+        callback(false);
+      }
+    }
   };
   xhr.open(type, url);
   xhr.send();
 };
 
 function locationSuccess(pos) {
-  var url = 'https://api.forecast.io/forecast/' + API_KEY + '/' +
+  var apiKey = localStorage.getItem('forecastAPIKey');
+  var apiEncoded = encodeURIComponent(apiKey.trim());
+
+  var url = 'https://api.forecast.io/forecast/' + apiEncoded + '/' +
     pos.coords.latitude + ',' + pos.coords.longitude;
 
   // Send request to forecast.io.
   xhrRequest(url, 'GET',
       function(responseText) {
-        // responseText contains a JSON object with weather info.
-        var json = JSON.parse(responseText);
+        if (responseText === false) {
+          console.error('Bad response from server!');
+        } else {
+          // responseText contains a JSON object with weather info.
+          var json = JSON.parse(responseText);
 
-        var temperature = Math.round(json.currently.temperature);
-        console.log('Temperature is: ' + temperature);
+          var temperature = Math.round(json.currently.temperature);
+          console.log('Temperature is: ' + temperature);
 
-        var conditions = json.currently.summary;
-        console.log('Conditions are: ' + conditions);
+          var conditions = json.currently.summary;
+          console.log('Conditions are: ' + conditions)
 
-        // Assemble dictionary using our keys
-        var dictionary = {
-          'KEY_TEMPERATURE': temperature,
-          'KEY_CONDITIONS': conditions
-        };
+          // Assemble dictionary using our keys
+          var dictionary = {
+            'KEY_TEMPERATURE': temperature,
+            'KEY_CONDITIONS': conditions
+          };
 
-        // Send to pebble.
-        Pebble.sendAppMessage(dictionary,
-            function(e) {
-              console.log('Weather info sent to pebble successfully!');
-            },
-            function(e) {
-              console.log('Error sending weather info to pebble!');
-            }
-        );
+          // Send to pebble.
+          Pebble.sendAppMessage(dictionary,
+              function(e) {
+                console.log('Weather info sent to pebble successfully!');
+              },
+              function(e) {
+                console.log('Error sending weather info to pebble!');
+              }
+          );
+        }
       }
   );
 }
