@@ -1,5 +1,3 @@
-const API_KEY = ''
-
 var xhrRequest = function(url, type, callback) {
   var xhr = new XMLHttpRequest();
   xhr.ontimeout = function() {
