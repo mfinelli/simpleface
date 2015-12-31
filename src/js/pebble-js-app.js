@@ -66,6 +66,18 @@ Pebble.addEventListener('ready',
     }
 );
 
+// Show the configuration page.
+Pebble.addEventListener('showConfiguration', function(e) {
+  var url = 'https://simpleface.watch';
+  console.log('config url: ' + url);
+  Pebble.openURL(url);
+});
+
+Pebble.addEventListener('webviewclosed', function(e) {
+  var configData = JSON.parse(decodeURIComponent(e.response));
+  console.log('Configuration page returned: ' + JSON.stringify(configData));
+});
+
 // Listen for when an AppMessage is received.
 Pebble.addEventListener('appmessage',
     function(e) {
