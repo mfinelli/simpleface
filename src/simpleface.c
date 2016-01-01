@@ -7,6 +7,14 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static TextLayer *s_weather_layer;
+static TextLayer *s_battery_layer;
+static int s_battery_level;
+
+static void update_battery() {
+    static char s_buffer[8];
+    snprintf(s_buffer, sizeof(s_buffer), "%d%%", s_battery_level);
+    text_layer_set_text(s_battery_layer, s_buffer);
+}
 
 static void update_time() {
     // Get a tm structure
@@ -20,6 +28,12 @@ static void update_time() {
 
     // Display this time on the text layer.
     text_layer_set_text(s_time_layer, s_buffer);
+}
+
+static void battery_callback(BatteryChargeState state) {
+    // Record the new battery level.
+    s_battery_level = state.charge_percent;
+    update_battery();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -49,6 +63,8 @@ static void main_window_load(Window *window) {
             GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
     s_weather_layer = text_layer_create(
             GRect(0, PBL_IF_ROUND_ELSE(125, 120), bounds.size.w, 25));
+    s_battery_layer = text_layer_create(
+            GRect(0, PBL_IF_ROUND_ELSE(25, 20), bounds.size.w, 20));
 
     // Improve the layout to be more like a watchface.
     text_layer_set_background_color(s_time_layer, GColorClear);
@@ -65,9 +81,21 @@ static void main_window_load(Window *window) {
     text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
     text_layer_set_text(s_weather_layer, "Loading...");
 
+    // Style battery level.
+    text_layer_set_background_color(s_battery_layer, GColorClear);
+    text_layer_set_text_color(s_battery_layer, GColorBlack);
+    text_layer_set_font(s_battery_layer,
+            fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    text_layer_set_text_alignment(s_battery_layer, GTextAlignmentCenter);
+    text_layer_set_text(s_battery_layer, "...");
+
     // Add it as a child layer to the Window's root layer
     layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
     layer_add_child(window_layer, text_layer_get_layer(s_weather_layer));
+    layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
+
+    // Initialize the batter level.
+    battery_callback(battery_state_service_peek());
 }
 
 static void main_window_unload(Window *window) {
@@ -122,6 +150,9 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
 }
 
 static void init() {
+    // Register for battery level updates.
+    battery_state_service_subscribe(battery_callback);
+
     // Create main window element and assign to pointer.
     s_main_window = window_create();
 
