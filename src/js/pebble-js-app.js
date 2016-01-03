@@ -27,8 +27,14 @@ function locationSuccess(pos) {
     units = 'si';
   }
 
+  var language = 'en';
+  if (localStorage.getItem('forecastLanguage')) {
+    language = localStorage.getItem('forecastLanguage');
+  }
+
   var url = 'https://api.forecast.io/forecast/' + apiEncoded + '/' +
-    pos.coords.latitude + ',' + pos.coords.longitude + '?units=' + units;
+    pos.coords.latitude + ',' + pos.coords.longitude + '?units=' + units +
+    '&lang=' + language;
 
   // Send request to forecast.io.
   xhrRequest(url, 'GET',
