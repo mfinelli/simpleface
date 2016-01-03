@@ -16,7 +16,8 @@
   "appKeys": {
     "KEY_TEMPERATURE": 0,
     "KEY_CONDITIONS": 1,
-    "FORECAST_API_KEY": 2
+    "FORECAST_API_KEY": 2,
+    "FORECAST_UNITS": 3
   },
   "resources": {
     "media": []

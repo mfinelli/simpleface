@@ -22,8 +22,13 @@ function locationSuccess(pos) {
   var apiKey = localStorage.getItem('forecastAPIKey');
   var apiEncoded = encodeURIComponent(apiKey.trim());
 
+  var units = 'us';
+  if (localStorage.getItem('forecastUnits') == 'si') {
+    units = 'si';
+  }
+
   var url = 'https://api.forecast.io/forecast/' + apiEncoded + '/' +
-    pos.coords.latitude + ',' + pos.coords.longitude;
+    pos.coords.latitude + ',' + pos.coords.longitude + '?units=' + units;
 
   // Send request to forecast.io.
   xhrRequest(url, 'GET',
@@ -43,7 +48,8 @@ function locationSuccess(pos) {
           // Assemble dictionary using our keys
           var dictionary = {
             'KEY_TEMPERATURE': temperature,
-            'KEY_CONDITIONS': conditions
+            'KEY_CONDITIONS': conditions,
+            'FORECAST_UNITS': units
           };
 
           // Send to pebble.

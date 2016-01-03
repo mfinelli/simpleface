@@ -3,6 +3,7 @@
 #define KEY_TEMPERATURE 0
 #define KEY_CONDITIONS 1
 #define FORECAST_API_KEY 2
+#define FORECAST_UNITS 3
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -130,6 +131,7 @@ static void inbox_received_callback(DictionaryIterator *iterator,
     Tuple *temp_tuple = dict_find(iterator, KEY_TEMPERATURE);
     Tuple *conditions_tuple = dict_find(iterator, KEY_CONDITIONS);
     Tuple *forecast_api_key_tuple = dict_find(iterator, FORECAST_API_KEY);
+    Tuple *units_tuple = dict_find(iterator, FORECAST_UNITS);
 
     if(forecast_api_key_tuple && !(int)forecast_api_key_tuple->value->int8) {
         snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s",
@@ -139,9 +141,15 @@ static void inbox_received_callback(DictionaryIterator *iterator,
 
 
     // Iff all data is available then use it.
-    else if(temp_tuple && conditions_tuple) {
-        snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F",
-                (int)temp_tuple->value->int32);
+    else if(temp_tuple && conditions_tuple && units_tuple) {
+        if(!strcmp(units_tuple->value->cstring, "si")) {
+            snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°C",
+                    (int)temp_tuple->value->int32);
+        } else {
+            snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F",
+                    (int)temp_tuple->value->int32);
+        }
+
         snprintf(conditions_buffer, sizeof(conditions_buffer), "%s",
                 conditions_tuple->value->cstring);
 
