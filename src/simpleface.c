@@ -8,6 +8,7 @@ static Window *s_main_window;
 static TextLayer *s_time_layer;
 static TextLayer *s_weather_layer;
 static TextLayer *s_battery_layer;
+static TextLayer *s_date_layer;
 static int s_battery_level;
 
 static void update_battery() {
@@ -26,8 +27,13 @@ static void update_time() {
     strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
             "%H:%M" : "%I:%M", tick_time);
 
+    // Write the current date into a buffer.
+    static char s_date_buffer[16];
+    strftime(s_date_buffer, sizeof(s_date_buffer), "%a %d %b", tick_time);
+
     // Display this time on the text layer.
     text_layer_set_text(s_time_layer, s_buffer);
+    text_layer_set_text(s_date_layer, s_date_buffer);
 }
 
 static void battery_callback(BatteryChargeState state) {
@@ -64,7 +70,9 @@ static void main_window_load(Window *window) {
     s_weather_layer = text_layer_create(
             GRect(0, PBL_IF_ROUND_ELSE(125, 120), bounds.size.w, 25));
     s_battery_layer = text_layer_create(
-            GRect(0, PBL_IF_ROUND_ELSE(25, 20), bounds.size.w, 20));
+            GRect(0, PBL_IF_ROUND_ELSE(15, 15), bounds.size.w, 20));
+    s_date_layer = text_layer_create(
+            GRect(0, PBL_IF_ROUND_ELSE(35, 35), bounds.size.w, 20));
 
     // Improve the layout to be more like a watchface.
     text_layer_set_background_color(s_time_layer, GColorClear);
@@ -89,10 +97,18 @@ static void main_window_load(Window *window) {
     text_layer_set_text_alignment(s_battery_layer, GTextAlignmentCenter);
     text_layer_set_text(s_battery_layer, "...");
 
+    // Style the date text.
+    text_layer_set_background_color(s_date_layer, GColorClear);
+    text_layer_set_text_color(s_date_layer, GColorBlack);
+    text_layer_set_font(s_date_layer,
+            fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+
     // Add it as a child layer to the Window's root layer
     layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
     layer_add_child(window_layer, text_layer_get_layer(s_weather_layer));
     layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
+    layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
 
     // Initialize the batter level.
     battery_callback(battery_state_service_peek());
