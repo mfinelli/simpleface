@@ -203,6 +203,8 @@ static void deinit() {
 }
 
 int main(void) {
+    setlocale(LC_ALL, "");
+
     init();
     app_event_loop();
     deinit();
